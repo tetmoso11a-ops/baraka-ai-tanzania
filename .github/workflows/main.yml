@@ -1,0 +1,50 @@
+name: Build Baraka AI APK
+
+on:
+workflow_dispatch:
+
+jobs:
+build:
+runs-on: ubuntu-latest
+
+steps:
+  - name: Download repository
+    uses: actions/checkout@v4
+
+  - name: Set up Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
+
+  - name: Extract Android project ZIP
+    run: |
+      unzip -o "baraka-ai-android-project (3).zip" -d android-project
+      find android-project -type f \( -name "gradlew" -o -name "gradlew.bat" -o -name "build.gradle" -o -name "build.gradle.kts" -o -name "settings.gradle" -o -name "settings.gradle.kts" \)
+
+  - name: Build APK
+    run: |
+      cd android-project
+      PROJECT_DIR="$(find . -type f -name gradlew -printf '%h\n' | head -n 1)"
+      if [ -z "$PROJECT_DIR" ]; then
+        echo "Gradle wrapper not found. Checking for a Gradle build file."
+        PROJECT_DIR="$(find . -type f \( -name build.gradle -o -name build.gradle.kts \) -printf '%h\n' | head -n 1)"
+      fi
+      if [ -z "$PROJECT_DIR" ]; then
+        echo "Android Gradle project not found."
+        exit 1
+      fi
+      cd "$PROJECT_DIR"
+      if [ -f gradlew ]; then
+        chmod +x gradlew
+        ./gradlew assembleDebug
+      else
+        gradle assembleDebug
+      fi
+
+  - name: Save APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: baraka-ai-apk la
+      path: android-project/**/*.apk
+      if-no-files-found: error
