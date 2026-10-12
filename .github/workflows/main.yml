@@ -1,7 +1,7 @@
-name: Build Baraka AI APK
 
-on:
-workflow_dispatch:
+workfloname: Build Baraka AI APK
+
+on:w_dispatch:
 
 jobs:
 build:
